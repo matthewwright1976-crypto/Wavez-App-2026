@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sideline OS | 2026 Wavez</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        .nav-btn.active { color: #34d399; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .no-select { user-select: none; -webkit-user-select: none; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-900 text-white font-sans antialiased pb-24 no-select">
+
+    <!-- Header -->
+    <header class="bg-slate-800 p-4 shadow-md flex justify-between items-center sticky top-0 z-10 border-b border-slate-700">
+        <div>
+            <h1 class="text-xl font-bold text-emerald-400">2026 Wavez</h1>
+            <div class="flex items-center space-x-2 mt-1">
+                <select id="role-switcher" onchange="triggerSync()" class="bg-slate-900 text-[10px] text-slate-300 border border-slate-600 rounded outline-none p-1 font-bold uppercase tracking-wider">
+                    <option value="matt">HC Matt Wright</option>
+                    <option value="katie">AC Katie Templin</option>
+                    <option value="lauren">AC Lauren May</option>
+                    <option value="jenny">TM Jenny Zuniga</option>
+                </select>
+                <span id="sync-status" class="text-[9px] text-emerald-400 font-bold flex items-center">
+                    <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse mr-1"></span> Synced
+                </span>
+            </div>
+        </div>
+        <div class="text-right">
+            <div id="game-clock" class="text-xl font-mono font-bold leading-none mb-1">00:00</div>
+            <div class="flex justify-end space-x-1">
+                <button onclick="resetTimer()" class="bg-slate-700 hover:bg-slate-600 text-white text-[10px] px-2 py-1 rounded uppercase font-bold tracking-wider transition-colors">Reset</button>
+                <button onclick="toggleTimer()" id="timer-btn" class="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] px-2 py-1 rounded uppercase font-bold tracking-wider transition-colors">Start Half</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- TAB 1: MATCH DAY -->
+    <main id="tab-match" class="tab-content active p-4">
+        <div class="flex space-x-2 mb-4 bg-slate-800 p-2 rounded-lg border border-slate-700 shadow-sm">
+            <div class="w-1/2">
+                <label class="text-[9px] text-slate-400 uppercase tracking-widest font-bold ml-1">Date</label>
+                <input type="date" id="match-date" class="w-full bg-slate-900 border border-slate-600 text-white rounded p-2 text-xs outline-none focus:border-emerald-500">
+            </div>
+            <div class="w-1/2">
+                <label class="text-[9px] text-slate-400 uppercase tracking-widest font-bold ml-1">Opponent</label>
+                <input type="text" id="match-opp" placeholder="Team Name..." class="w-full bg-slate-900 border border-slate-600 text-white rounded p-2 text-xs outline-none focus:border-emerald-500">
+            </div>
+        </div>
+
+        <section class="flex justify-between items-center bg-slate-800 mb-6 rounded-lg border border-slate-700 p-3 shadow-lg">
+            <div class="text-center w-1/3">
+                <h2 class="text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">The Wavez</h2>
+                <div class="flex items-center justify-center space-x-3">
+                    <button onclick="updateScore('home', -1)" class="bg-slate-700 h-8 w-8 rounded-full text-lg font-bold hover:bg-slate-600">-</button>
+                    <span id="score-home" class="text-3xl font-bold text-emerald-400">0</span>
+                    <button onclick="triggerTeamGoal()" class="bg-emerald-500 h-8 w-8 rounded-full text-lg font-bold hover:bg-emerald-400">+</button>
+                </div>
+            </div>
+            <div class="text-xl font-bold text-slate-600 w-1/3 text-center">VS</div>
+            <div class="text-center w-1/3">
+                <h2 class="text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">Opponent</h2>
+                <div class="flex items-center justify-center space-x-3">
+                    <button onclick="updateScore('away', -1)" class="bg-slate-700 h-8 w-8 rounded-full text-lg font-bold hover:bg-slate-600">-</button>
+                    <span id="score-away" class="text-3xl font-bold text-red-400">0</span>
+                    <button onclick="updateScore('away', 1)" class="bg-red-500 h-8 w-8 rounded-full text-lg font-bold hover:bg-red-400">+</button>
+                </div>
+            </div>
+        </section>
+
+        <div class="flex justify-between items-end mb-3">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300">On Field (11)</h3>
+            <span class="text-[10px] text-slate-500">Tap card for stats/subs</span>
+        </div>
+        <div id="on-field" class="grid grid-cols-2 gap-2 mb-6"></div>
+
+        <div class="flex justify-between items-end mb-3 border-t border-slate-700 pt-4">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400">Bench</h3>
+        </div>
+        <div id="bench" class="grid grid-cols-2 gap-2 mb-4"></div>
+        
+        <button onclick="openGuestModal()" class="w-full py-3 bg-slate-800 text-emerald-400 border border-slate-700 border-dashed rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-slate-700 transition-colors">
+            + Add Guest Player
+        </button>
+    </main>
+
+    <!-- TAB 2: POST-GAME REPORT -->
+    <main id="tab-postgame" class="tab-content p-4">
+        <div class="mb-4">
+            <h2 class="text-lg font-bold text-emerald-400">Post-Game Report</h2>
+            <p class="text-xs text-slate-400">Finalize stats and log data to the database.</p>
+        </div>
+        
+        <div class="mb-6 bg-slate-800 p-3 rounded-lg border border-slate-700 shadow-lg">
+            <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-2">Match Captains</h3>
+            <select id="captain-1" class="w-full bg-slate-900 border border-slate-600 text-white rounded p-2 text-xs outline-none focus:border-emerald-500 mb-2"></select>
+            <select id="captain-2" class="w-full bg-slate-900 border border-slate-600 text-white rounded p-2 text-xs outline-none focus:border-emerald-500"></select>
+        </div>
+
+        <div class="bg-slate-800 rounded-lg border border-slate-700 p-3 mb-6 shadow-lg">
+            <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-3">Player Performance (1-5)</h3>
+            <div id="post-game-list" class="space-y-3"></div>
+        </div>
+
+        <button onclick="submitPostGameReport()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 rounded-lg shadow-lg uppercase tracking-widest text-sm transition-colors">
+            Submit Game Report
+        </button>
+    </main>
+
+    <!-- TAB 3: SEASON STATS -->
+    <main id="tab-season" class="tab-content p-4">
+        <div class="mb-4 flex justify-between items-center">
+            <div>
+                <h2 class="text-lg font-bold text-emerald-400">Season Dashboard</h2>
+                <p class="text-xs text-slate-400">Fall 2026 Record</p>
+            </div>
+            <div class="flex space-x-2">
+                <button onclick="openPastGameModal()" class="text-[10px] bg-emerald-900/50 text-emerald-400 px-2 py-1 rounded border border-emerald-800 transition-colors hover:bg-emerald-900/80">+ Add Past Game</button>
+                <button onclick="resetSeasonWarning()" class="text-[10px] bg-red-900/50 text-red-400 px-2 py-1 rounded border border-red-800 transition-colors hover:bg-red-900/80">Clear Season</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 mb-4">
+            <div class="bg-slate-800 p-4 text-center rounded-xl border border-slate-700 shadow-sm">
+                <div id="szn-w" class="text-4xl font-bold text-emerald-400">0</div>
+                <div class="text-[10px] text-slate-400 font-bold tracking-widest mt-1 uppercase">Wins</div>
+            </div>
+            <div class="bg-slate-800 p-4 text-center rounded-xl border border-slate-700 shadow-sm">
+                <div id="szn-l" class="text-4xl font-bold text-red-400">0</div>
+                <div class="text-[10px] text-slate-400 font-bold tracking-widest mt-1 uppercase">Losses</div>
+            </div>
+            <div class="bg-slate-800 p-4 text-center rounded-xl border border-slate-700 shadow-sm">
+                <div id="szn-d" class="text-4xl font-bold text-slate-400">0</div>
+                <div class="text-[10px] text-slate-400 font-bold tracking-widest mt-1 uppercase">Draws</div>
+            </div>
+        </div>
+
+        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3 border-t border-slate-700 pt-4">Match History <span class="lowercase font-normal italic text-slate-500">(Tap ✎ to edit)</span></h3>
+        <div id="match-history-list" class="space-y-2 pb-6"></div>
+    </main>
+
+    <!-- TAB 4: DATABASE (RANKINGS) -->
+    <main id="tab-rankings" class="tab-content p-4">
+        <div class="flex justify-between items-center mb-4">
+            <div>
+                <h2 class="text-lg font-bold text-emerald-400">Player Database</h2>
+                <p class="text-[10px] text-slate-400 uppercase tracking-wider">Tap a stat or OVR to manually edit.</p>
+            </div>
+        </div>
+        <div class="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden overflow-x-auto shadow-lg">
+            <table class="w-full text-left text-sm whitespace-nowrap">
+                <thead class="bg-slate-900 text-slate-400 uppercase text-[9px] tracking-wider">
+                    <tr>
+                        <th class="p-3 w-8">#</th>
+                        <th class="p-3">Player</th>
+                        <th class="p-3 text-center text-blue-300 border-l border-slate-700">MINS</th>
+                        <th class="p-3 text-center text-blue-300">AVG</th>
+                        <th class="p-3 text-center border-l border-slate-700">G</th>
+                        <th class="p-3 text-center">A</th>
+                        <th class="p-3 text-center">SV</th>
+                        <th class="p-3 text-center text-emerald-400 border-l border-slate-700">CAPT</th>
+                        <th class="p-3 text-center border-l border-slate-700">GP</th>
+                        <th class="p-3 text-right text-emerald-400">OVR</th>
+                    </tr>
+                </thead>
+                <tbody id="rankings-table" class="divide-y divide-slate-700"></tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- TAB 5: DYNAMIC PRACTICE PLANNER -->
+    <main id="tab-practice" class="tab-content p-4">
+        <div class="flex justify-between items-center mb-4">
+            <div>
+                <h2 class="text-lg font-bold text-emerald-400">Practice Builder</h2>
+                <p class="text-xs text-slate-400">Fall 2026 Cycle</p>
+            </div>
+            <div class="text-right">
+                <label class="block text-[9px] text-slate-400 uppercase tracking-wider font-bold mb-1">Start Time</label>
+                <input type="time" id="practice-start-time" value="17:00" onchange="updatePracticeTimes()" class="bg-slate-800 border border-slate-600 text-emerald-400 font-bold rounded p-1.5 text-xs outline-none w-24">
+            </div>
+        </div>
+        
+        <select id="practice-date-selector" onchange="loadPracticeForDate()" class="w-full bg-slate-800 border border-slate-600 text-emerald-400 font-bold rounded-lg p-3 mb-4 text-sm outline-none shadow-sm uppercase tracking-wider"></select>
+
+        <div class="space-y-3 mb-6" id="practice-timeline"></div>
+
+        <button onclick="addDrillBlock()" class="w-full py-4 bg-slate-800 text-emerald-400 border border-slate-700 border-dashed rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-slate-700 transition-colors">
+            + Add Drill Block
+        </button>
+    </main>
+
+    <!-- TAB 6: FILM ROOM -->
+    <main id="tab-film" class="tab-content p-4">
+        <div class="mb-4">
+            <h2 class="text-lg font-bold text-emerald-400">Film Room</h2>
+            <p class="text-xs text-slate-400">Upload and tag game clips for video review.</p>
+        </div>
+
+        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg mb-6">
+            <h3 class="text-sm font-bold text-white mb-3 border-b border-slate-700 pb-2">Upload New Clip</h3>
+            
+            <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Video File</label>
+            <input type="file" id="film-file" accept="video/*" class="w-full bg-slate-900 border border-slate-600 text-slate-300 rounded p-1.5 text-xs outline-none mb-3 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-[10px] file:font-bold file:uppercase file:tracking-wider file:bg-slate-700 file:text-emerald-400 hover:file:bg-slate-600 cursor-pointer">
+
+            <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Clip Title</label>
+            <input type="text" id="film-title" placeholder="e.g. Saturday vs Surf - 2nd Half" class="w-full bg-slate-900 border border-slate-600 text-white rounded p-2 text-xs outline-none mb-3">
+            
+            <div class="flex space-x-2 mb-3">
+                <div class="w-1/2">
+                    <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Tag Player</label>
+                    <select id="film-player" class="w-full bg-slate-900 border border-slate-600 text-white rounded p-2 text-xs outline-none"></select>
+                </div>
+                <div class="w-1/2">
+                    <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Timestamp</label>
+                    <input type="text" id="film-time" placeholder="e.g. 14:32" class="w-full bg-slate-900 border border-slate-600 text-white rounded p-2 text-xs outline-none">
+                </div>
+            </div>
+
+            <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Coaching Note</label>
+            <textarea id="film-note" rows="2" placeholder="Great overlapping run, but keep your head up before the cross..." class="w-full bg-slate-900 border border-slate-600 text-white rounded p-2 text-xs outline-none mb-4"></textarea>
+
+            <button onclick="saveFilmClip()" class="w-full py-3 bg-emerald-500 text-white font-bold rounded-lg text-xs uppercase tracking-wider hover:bg-emerald-600 transition-colors shadow-lg">Save & Sync to Player</button>
+        </div>
+
+        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3 border-t border-slate-700 pt-4">Saved Clips Database</h3>
+        <div id="film-list" class="space-y-4 pb-6"></div>
+    </main>
+
+    <!-- MODALS -->
+
+    <!-- EDIT GAME MODAL -->
+    <div id="edit-game-modal" class="fixed inset-0 bg-black/90 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-600 rounded-xl p-5 w-full max-w-sm shadow-2xl overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-1">
+                <h3 class="text-xl font-bold text-white">Edit Match Record</h3>
+                <button onclick="deleteGame()" class="text-[10px] bg-red-900/50 text-red-400 px-2 py-1 rounded border border-red-800 hover:bg-red-900/80 transition-colors">Delete Match</button>
+            </div>
+            <p class="text-[10px] text-slate-400 mb-4">Update the score or opponent for this game.</p>
+            
+            <div class="flex space-x-2 mb-3">
+                <input type="date" id="edit-date" class="w-1/2 bg-slate-900 border border-slate-600 text-white rounded-lg p-2 text-xs outline-none">
+                <input type="text" id="edit-opp" placeholder="Opponent" class="w-1/2 bg-slate-900 border border-slate-600 text-white rounded-lg p-2 text-xs outline-none">
+            </div>
+            
+            <div class="flex space-x-3 mb-4">
+                <div class="w-1/2">
+                    <label class="block text-[9px] text-slate-400 uppercase font-bold mb-1">Wavez Goals</label>
+                    <input type="number" id="edit-wavez-score" min="0" class="w-full bg-slate-900 border border-slate-600 text-white rounded-lg p-2 outline-none text-center font-bold">
+                </div>
+                <div class="w-1/2">
+                    <label class="block text-[9px] text-slate-400 uppercase font-bold mb-1">Opp. Goals</label>
+                    <input type="number" id="edit-opp-score" min="0" class="w-full bg-slate-900 border border-slate-600 text-white rounded-lg p-2 outline-none text-center font-bold">
+                </div>
+            </div>
+
+            <p class="text-[9px] text-amber-500 italic mb-4 leading-tight">Note: Changing the score here automatically recalculates the Team Season Record. Individual player stats (Goals/Assists) must be manually edited in the Database tab.</p>
+
+            <div class="flex space-x-3">
+                <button onclick="closeEditGameModal()" class="flex-1 py-3 bg-slate-700 text-slate-300 rounded-lg font-bold text-sm hover:bg-slate-600 transition-colors">Cancel</button>
+                <button onclick="submitEditGame()" class="flex-1 py-3 bg-emerald-500 text-white rounded-lg font-bold text-sm hover:bg-emerald-600 transition-colors">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOG PAST GAME MODAL -->
+    <div id="past-game-modal" class="fixed inset-0 bg-black/90 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-600 rounded-xl p-5 w-full max-w-sm shadow-2xl overflow-y-auto max-h-[90vh]">
+            <h3 class="text-xl font-bold text-white mb-1">Log Past Game</h3>
+            <p class="text-xs text-slate-400 mb-4">Add historical match data and goal stats.</p>
+            
+            <div class="flex space-x-2 mb-3">
+                <input type="date" id="past-date" class="w-1/2 bg-slate-900 border border-slate-600 text-white rounded-lg p-2 text-xs outline-none">
+                <input type="text" id="past-opp" placeholder="Opponent" class="w-1/2 bg-slate-900 border border-slate-600 text-white rounded-lg p-2 text-xs outline-none">
+            </div>
+            
+            <div class="flex space-x-3 mb-4">
+                <div class="w-1/2">
+                    <label class="block text-[9px] text-slate-400 uppercase font-bold mb-1">Wavez Goals</label>
+                    <input type="number" id="past-wavez-score" value="0" min="0" class="w-full bg-slate-900 border border-slate-600 text-white rounded-lg p-2 outline-none text-center font-bold">
+                </div>
+                <div class="w-1/2">
+                    <label class="block text-[9px] text-slate-400 uppercase font-bold mb-1">Opp. Goals</label>
+                    <input type="number" id="past-opp-score" value="0" min="0" class="w-full bg-slate-900 border border-slate-600 text-white rounded-lg p-2 outline-none text-center font-bold">
+                </div>
+            </div>
+
+            <div class="border-t border-slate-700 pt-3 mb-4">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="block text-[10px] text-emerald-400 uppercase font-bold">Player Stats (Optional)</label>
+                    <button onclick="addPastGoalRow()" class="text-[9px] bg-slate-700 text-white px-2 py-1 rounded hover:bg-slate-600 transition-colors">+ Add Scorer</button>
+                </div>
+                <div id="past-goals-container" class="space-y-2 max-h-32 overflow-y-auto pr-1"></div>
+            </div>
+
+            <div class="flex space-x-3">
+                <button onclick="closePastGameModal()" class="flex-1 py-3 bg-slate-700 text-slate-300 rounded-lg font-bold text-sm hover:bg-slate-600 transition-colors">Cancel</button>
+                <button onclick="submitPastGame()" class="flex-1 py-3 bg-emerald-500 text-white rounded-lg font-bold text-sm hover:bg-emerald-600 transition-colors">Save Match</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GUEST MODAL -->
+    <div id="guest-modal" class="fixed inset-0 bg-black/90 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-600 rounded-xl p-6 w-full max-w-sm shadow-2xl">
+            <h3 class="text-xl font-bold text-white mb-1">Add Guest Player</h3>
+            <p class="text-xs text-slate-400 mb-6">They will be added to the bench for today.</p>
+            <input type="text" id="guest-name" placeholder="Player Name" class="w-full bg-slate-900 border border-slate-600 text-white rounded-lg p-3 mb-4 outline-none">
+            <input type="number" id="guest-num" placeholder="Jersey Number" class="w-full bg-slate-900 border border-slate-600 text-white rounded-lg p-3 mb-4 outline-none">
+            <select id="guest-pos" class="w-full bg-slate-900 border border-slate-600 text-white rounded-lg p-3 mb-6 outline-none">
+                <option value="Goalie">Goalie</option><option value="Left back">Left back</option><option value="Center Back Left">Center Back Left</option><option value="Center Back Right">Center Back Right</option><option value="Right back">Right back</option><option value="Mid Left">Mid Left</option><option value="Center mid">Center mid</option><option value="Mid Right">Mid Right</option><option value="Left Winger">Left Winger</option><option value="Striker">Striker</option><option value="Right Winger">Right Winger</option>
+            </select>
+            <div class="flex space-x-3">
+                <button onclick="closeGuestModal()" class="flex-1 py-3 bg-slate-700 text-slate-300 rounded-lg font-bold text-sm">Cancel</button>
+                <button onclick="addGuestPlayer()" class="flex-1 py-3 bg-emerald-500 text-white rounded-lg font-bold text-sm">Add to Roster</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GOAL MODAL -->
+    <div id="team-goal-modal" class="fixed inset-0 bg-black/90 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-emerald-500 rounded-xl p-6 w-full max-w-sm shadow-2xl">
+            <div class="text-center mb-6"><h3 class="text-2xl font-bold text-emerald-400 uppercase tracking-widest">Goal Wavez!</h3></div>
+            <div class="mb-4">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Who Scored?</label>
+                <select id="goal-scorer" class="w-full bg-slate-900 border border-slate-600 text-white rounded-lg p-3 outline-none"></select>
+            </div>
+            <div class="mb-6">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Assist (Optional)</label>
+                <select id="goal-assist" class="w-full bg-slate-900 border border-slate-600 text-white rounded-lg p-3 outline-none"></select>
+            </div>
+            <div class="flex space-x-3">
+                <button onclick="closeTeamGoalModal()" class="flex-1 py-3 bg-slate-700 text-slate-300 rounded-lg font-bold text-sm">Cancel</button>
+                <button onclick="submitTeamGoal()" class="flex-1 py-3 bg-emerald-500 text-white rounded-lg font-bold text-sm">Save Goal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PLAYER EVAL MODAL -->
+    <div id="eval-modal" class="fixed inset-0 bg-black/90 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-600 rounded-xl p-5 w-full max-w-sm shadow-2xl overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-2">
+                <div><h3 id="eval-name" class="text-xl font-bold text-white">Player</h3><p id="eval-pos-display" class="text-xs text-emerald-400 uppercase tracking-wider">Position</p></div>
+                <button onclick="closeEval()" class="text-slate-400 hover:text-white text-3xl font-light">&times;</button>
+            </div>
+            <hr class="border-slate-700 my-4">
+            <div class="grid grid-cols-2 gap-3 mb-6">
+                <div class="bg-slate-900 rounded border border-slate-700 p-2 text-center">
+                    <div class="text-[10px] text-slate-500 mb-1">SAVES</div>
+                    <div class="flex justify-between items-center px-2">
+                        <button onclick="tempAdj('saves', -1)" class="bg-slate-700 w-7 h-7 rounded text-white font-bold">-</button>
+                        <span id="temp-saves" class="font-bold text-lg text-emerald-400">0</span>
+                        <button onclick="tempAdj('saves', 1)" class="bg-slate-700 w-7 h-7 rounded text-white font-bold">+</button>
+                    </div>
+                </div>
+                <div class="bg-slate-900 rounded border border-slate-700 p-2 text-center">
+                    <div class="text-[10px] text-slate-500 mb-1">YELLOW CARDS</div>
+                    <div class="flex justify-between items-center px-2">
+                        <button onclick="tempAdj('yellows', -1)" class="bg-slate-700 w-7 h-7 rounded text-white font-bold">-</button>
+                        <span id="temp-yellows" class="font-bold text-lg text-yellow-400">0</span>
+                        <button onclick="tempAdj('yellows', 1)" class="bg-slate-700 w-7 h-7 rounded text-white font-bold">+</button>
+                    </div>
+                </div>
+                <div class="bg-slate-900 rounded border border-slate-700 p-2 text-center col-span-2">
+                    <div class="text-[10px] text-slate-500 mb-1">RED CARDS</div>
+                    <div class="flex justify-between items-center px-10">
+                        <button onclick="tempAdj('reds', -1)" class="bg-slate-700 w-7 h-7 rounded text-white font-bold">-</button>
+                        <span id="temp-reds" class="font-bold text-lg text-red-500">0</span>
+                        <button onclick="tempAdj('reds', 1)" class="bg-slate-700 w-7 h-7 rounded text-white font-bold">+</button>
+                    </div>
+                </div>
+            </div>
+            <button onclick="executeSub(); closeEval();" id="sub-btn-text" class="w-full py-3 bg-slate-700 text-white rounded-lg font-bold text-sm mb-2 hover:bg-slate-600 transition-colors uppercase tracking-wider">Move to Bench</button>
+            <button onclick="saveStatsOnly(); closeEval();" class="w-full py-3 bg-slate-900 border border-slate-700 text-slate-300 rounded-lg font-bold text-sm hover:bg-slate-800 transition-colors uppercase tracking-wider">Save & Keep on Field</button>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed bottom-0 w-full bg-slate-900 border-t border-slate-800 grid grid-cols-6 p-2 pb-6 z-20">
+        <button onclick="switchTab('match')" id="btn-match" class="nav-btn active flex flex-col items-center text-slate-400"><svg class="w-4 h-4 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg><span class="text-[7px] uppercase font-bold tracking-wider">Match</span></button>
+        <button onclick="switchTab('postgame')" id="btn-postgame" class="nav-btn flex flex-col items-center text-slate-400"><svg class="w-4 h-4 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg><span class="text-[7px] uppercase font-bold tracking-wider">Report</span></button>
+        <button onclick="switchTab('season')" id="btn-season" class="nav-btn flex flex-col items-center text-slate-400"><svg class="w-4 h-4 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg><span class="text-[7px] uppercase font-bold tracking-wider">Season</span></button>
+        <button onclick="switchTab('rankings')" id="btn-rankings" class="nav-btn flex flex-col items-center text-slate-400"><svg class="w-4 h-4 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg><span class="text-[7px] uppercase font-bold tracking-wider">Database</span></button>
+        <button onclick="switchTab('practice')" id="btn-practice" class="nav-btn flex flex-col items-center text-slate-400"><svg class="w-4 h-4 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg><span class="text-[7px] uppercase font-bold tracking-wider">Practice</span></button>
+        <button onclick="switchTab('film')" id="btn-film" class="nav-btn flex flex-col items-center text-slate-400"><svg class="w-4 h-4 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg><span class="text-[7px] uppercase font-bold tracking-wider">Film</span></button>
+    </nav>
+
+    <script>
+        // --- DATA & STATE ---
+        const validPositions = ["Goalie", "Left back", "Center Back Left", "Center Back Right", "Right back", "Mid Left", "Center mid", "Mid Right", "Left Winger", "Striker", "Right Winger"];
+        const defaultRoster = [
+            { id: 1, name: "Finnley", number: 3, pos: "Goalie", ranking: 75.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+            { id: 2, name: "Cate", number: 26, pos: "Left back", ranking: 82.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+            { id: 3, name: "Grace", number: 15, pos: "Center Back Left", ranking: 72.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+            { id: 4, name: "Coco", number: 14, pos: "Center Back Right", ranking: 86.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+            { id: 5, name: "Josie", number: 7, pos: "Right back", ranking: 82.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+            { id: 6, name: "Olivia", number: 30, pos: "Mid Left", ranking: 85.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+            { id: 7, name: "Emily", number: 11, pos: "Center mid", ranking: 80.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+            { id: 8, name: "Jiliana", number: 9, pos: "Mid Right", ranking: 75.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+            { id: 9, name: "Eliana", number: 39, pos: "Left Winger", ranking: 75.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+            { id: 10, name: "Elizabeth", number: 23, pos: "Striker", ranking: 87.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+            { id: 11, name: "Julissa", number: 8, pos: "Right Winger", ranking: 80.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+            { id: 12, name: "Zara", number: 10, pos: "Goalie", ranking: 60.0, status: "bench", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+            { id: 13, name: "Milania", number: 12, pos: "Right Winger", ranking: 70.0, status: "bench", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+            { id: 14, name: "Piper", number: 27, pos: "Striker", ranking: 85.0, status: "bench", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+            { id: 15, name: "Kensley", number: 5, pos: "Center mid", ranking: 73.0, status: "bench", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 }
+        ];
+
+        let roster = JSON.parse(localStorage.getItem('wavezRoster26v8')) || defaultRoster;
+        let seasonData = JSON.parse(localStorage.getItem('wavezSeason26v6')) || { w:0, l:0, d:0, gf:0, ga:0, matches: [] };
+        let filmClips = JSON.parse(localStorage.getItem('wavezFilm26v2')) || [];
+        
+        let timerInterval; let seconds = 0; let isRunning = false; let scores = { home: 0, away: 0 };
+        let currentEvalId = null; let tempStats = { saves: 0, yellows: 0, reds: 0 }; let postGameRatings = {};
+        let currentEditMatchIndex = null;
+
+        function saveData() { 
+            localStorage.setItem('wavezRoster26v8', JSON.stringify(roster)); 
+            localStorage.setItem('wavezSeason26v6', JSON.stringify(seasonData)); 
+            const safeFilmClips = filmClips.map(clip => ({ ...clip, videoUrl: null }));
+            localStorage.setItem('wavezFilm26v2', JSON.stringify(safeFilmClips)); 
+            triggerSync();
+        }
+        
+        function formatTime(sec) { return `${Math.floor(sec / 60).toString().padStart(2, '0')}:${(sec % 60).toString().padStart(2, '0')}`; }
+
+        function triggerSync() {
+            const status = document.getElementById('sync-status');
+            status.innerHTML = `<span class="w-2 h-2 bg-amber-400 rounded-full animate-spin mr-1 border-t-2 border-white"></span> Syncing...`;
+            setTimeout(() => { status.innerHTML = `<span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse mr-1"></span> Synced`; }, 800);
+        }
+
+        // --- TABS ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            document.getElementById(`btn-${tabId}`).classList.add('active');
+            if (tabId === 'rankings') renderRankings();
+            if (tabId === 'season') renderSeason();
+            if (tabId === 'postgame') renderPostGameTab();
+            if (tabId === 'film') renderFilmRoom();
+        }
+
+        // --- MATCH & CLOCK CONTROLS ---
+        function toggleTimer() {
+            const btn = document.getElementById('timer-btn');
+            if (isRunning) { clearInterval(timerInterval); btn.innerText = "RESUME"; btn.classList.replace('bg-red-500', 'bg-emerald-500'); } 
+            else { timerInterval = setInterval(() => { seconds++; document.getElementById('game-clock').innerText = formatTime(seconds); roster.forEach(p => { if(p.status === 'field') p.time++; }); if (seconds % 60 === 0) renderRoster(); }, 1000); btn.innerText = "PAUSE"; btn.classList.replace('bg-emerald-500', 'bg-red-500'); }
+            isRunning = !isRunning;
+        }
+
+        function resetTimer() {
+            if(confirm("Are you sure you want to reset the match clock and all current playing time to zero?")) {
+                clearInterval(timerInterval); seconds = 0; isRunning = false; 
+                roster.forEach(p => { p.time = 0; }); 
+                document.getElementById('game-clock').innerText = "00:00"; 
+                const btn = document.getElementById('timer-btn');
+                btn.innerText = "START HALF"; btn.classList.remove('bg-red-500'); btn.classList.add('bg-emerald-500'); 
+                renderRoster();
+            }
+        }
+
+        function updateScore(team, change) { scores[team] = Math.max(0, scores[team] + change); document.getElementById(`score-${team}`).innerText = scores[team]; triggerSync(); }
+        function triggerTeamGoal() {
+            let options = `<option value="">-- Select Player --</option>`;
+            [...roster].sort((a,b) => a.name.localeCompare(b.name)).forEach(p => { options += `<option value="${p.id}">${p.number} - ${p.name}</option>`; });
+            document.getElementById('goal-scorer').innerHTML = options; document.getElementById('goal-assist').innerHTML = `<option value="">-- Unassisted --</option>` + options;
+            document.getElementById('team-goal-modal').classList.remove('hidden');
+        }
+        function closeTeamGoalModal() { document.getElementById('team-goal-modal').classList.add('hidden'); }
+        function submitTeamGoal() {
+            const sId = document.getElementById('goal-scorer').value; const aId = document.getElementById('goal-assist').value;
+            if (sId) roster.find(p => p.id == sId).goals += 1; if (aId) roster.find(p => p.id == aId).assists += 1;
+            updateScore('home', 1); saveData(); closeTeamGoalModal();
+        }
+        function changePosition(event, id, newPos) { event.stopPropagation(); roster.find(p => p.id === id).pos = newPos; saveData(); }
+        
+        function manualAdjustStat(id, statType) {
+            const p = roster.find(x => x.id === id); 
+            let title = statType === 'ranking' ? 'Overall Ranking (OVR)' : statType.toUpperCase();
+            const input = prompt(`Adjust ${title} for ${p.name}:`, statType === 'ranking' ? p.ranking.toFixed(1) : p[statType]);
+            if (input !== null && !isNaN(input) && input.trim() !== "") { 
+                p[statType] = statType === 'ranking' ? parseFloat(Number(input).toFixed(1)) : parseInt(Number(input)); 
+                saveData(); renderRankings(); renderRoster(); 
+            }
+        }
+
+        // --- EVALS & GUESTS ---
+        function openEval(id) { currentEvalId = id; const p = roster.find(x => x.id === id); document.getElementById('eval-name').innerText = `#${p.number} ${p.name}`; document.getElementById('eval-pos-display').innerText = p.pos; document.getElementById('sub-btn-text').innerText = p.status === 'field' ? 'Move to Bench' : 'Sub Onto Field'; tempStats = { saves: 0, yellows: 0, reds: 0 }; updateTempUI(); document.getElementById('eval-modal').classList.remove('hidden'); }
+        function closeEval() { document.getElementById('eval-modal').classList.add('hidden'); currentEvalId = null; }
+        function tempAdj(stat, change) { tempStats[stat] = Math.max(0, tempStats[stat] + change); updateTempUI(); }
+        function updateTempUI() { document.getElementById('temp-saves').innerText = tempStats.saves; document.getElementById('temp-yellows').innerText = tempStats.yellows; document.getElementById('temp-reds').innerText = tempStats.reds; }
+        function saveStatsOnly() { const p = roster.find(x => x.id === currentEvalId); p.saves += tempStats.saves; p.yellows += tempStats.yellows; p.reds += tempStats.reds; saveData(); renderRoster(); }
+        function executeSub() { const p = roster.find(x => x.id === currentEvalId); p.status = p.status === 'field' ? 'bench' : 'field'; saveStatsOnly(); }
+        function openGuestModal() { document.getElementById('guest-modal').classList.remove('hidden'); }
+        function closeGuestModal() { document.getElementById('guest-modal').classList.add('hidden'); }
+        function addGuestPlayer() { const name = document.getElementById('guest-name').value || "Guest"; const num = document.getElementById('guest-num').value || "99"; const pos = document.getElementById('guest-pos').value; roster.push({ id: Date.now(), name: name + " (G)", number: num, pos: pos, ranking: 75.0, status: "bench", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0, isGuest: true }); saveData(); renderRoster(); closeGuestModal(); document.getElementById('guest-name').value = ''; document.getElementById('guest-num').value = ''; }
+
+        // --- POST GAME LOGGING ---
+        function renderPostGameTab() {
+            let options = `<option value="">-- Select Captain --</option>`;
+            [...roster].sort((a,b) => a.name.localeCompare(b.name)).forEach(p => { options += `<option value="${p.id}">${p.number} - ${p.name}</option>`; });
+            document.getElementById('captain-1').innerHTML = options; document.getElementById('captain-2').innerHTML = options;
+            const list = document.getElementById('post-game-list'); list.innerHTML = '';
+            [...roster].filter(p => p.time > 0 || p.status === 'field').sort((a,b) => b.time - a.time).forEach(p => {
+                if(postGameRatings[p.id] === undefined) postGameRatings[p.id] = 3; 
+                let btns = [1,2,3,4,5].map(num => `<button onclick="setPostGameRating(${p.id}, ${num})" class="w-8 h-8 rounded-full font-bold text-sm ${postGameRatings[p.id] === num ? 'bg-emerald-500 text-white shadow-lg scale-110' : 'bg-slate-700 text-slate-400'}">${num}</button>`).join('');
+                list.innerHTML += `<div class="flex justify-between items-center p-2 border-b border-slate-700/50 last:border-0"><div class="w-1/3 leading-tight"><span class="text-sm font-bold">${p.name}</span><div class="text-[9px] text-slate-500">Mins: ${Math.floor(p.time/60)}</div></div><div class="flex space-x-2 w-2/3 justify-end items-center">${btns}</div></div>`;
+            });
+        }
+        function setPostGameRating(id, rating) { postGameRatings[id] = rating; renderPostGameTab(); }
+        function submitPostGameReport() {
+            if(!confirm("Submit final game report?")) return;
+            const c1 = document.getElementById('captain-1').value; const c2 = document.getElementById('captain-2').value;
+            if(c1) roster.find(p=>p.id==c1).capt++; if(c2 && c2 !== c1) roster.find(p=>p.id==c2).capt++;
+            let date = document.getElementById('match-date').value || new Date().toISOString().split('T')[0];
+            let opp = document.getElementById('match-opp').value || "Unknown";
+            let result = scores.home > scores.away ? 'W' : (scores.home < scores.away ? 'L' : 'D');
+            seasonData.matches.push({ date, opp, result, wScore: scores.home, oScore: scores.away });
+            
+            roster.forEach(p => { p.ranking = parseFloat((p.ranking + (((postGameRatings[p.id] || 3) - 3) * 0.5)).toFixed(1)); if(p.time > 0 || p.goals > 0 || p.assists > 0 || p.saves > 0) p.gp += 1; p.totalTime += p.time; p.time = 0; });
+            scores = { home: 0, away: 0 }; seconds = 0; if(isRunning) toggleTimer(); 
+            document.getElementById('game-clock').innerText = "00:00"; document.getElementById('score-home').innerText = "0"; document.getElementById('score-away').innerText = "0"; document.getElementById('match-opp').value = ""; postGameRatings = {}; 
+            
+            recalculateSeasonStats(); // Ensure pure sync
+            renderRoster(); switchTab('season');
+        }
+
+        // --- PAST GAME MODAL (ADD) ---
+        function openPastGameModal() {
+            document.getElementById('past-date').valueAsDate = new Date();
+            document.getElementById('past-goals-container').innerHTML = '';
+            document.getElementById('past-game-modal').classList.remove('hidden');
+        }
+        function closePastGameModal() { document.getElementById('past-game-modal').classList.add('hidden'); }
+        
+        function addPastGoalRow() {
+            const container = document.getElementById('past-goals-container');
+            let options = `<option value="">-- Player --</option>`;
+            [...roster].sort((a,b) => a.name.localeCompare(b.name)).forEach(p => { options += `<option value="${p.id}">${p.number} - ${p.name}</option>`; });
+            
+            const row = document.createElement('div');
+            row.className = "flex space-x-2 bg-slate-900 p-2 rounded border border-slate-700 items-end";
+            row.innerHTML = `
+                <div class="w-1/2"><label class="block text-[8px] text-slate-500 uppercase mb-1">Scored By</label><select class="past-scorer-select w-full bg-slate-800 border border-slate-600 text-white rounded p-1.5 text-[10px] outline-none">${options}</select></div>
+                <div class="w-1/2"><label class="block text-[8px] text-slate-500 uppercase mb-1">Assist By</label><select class="past-assist-select w-full bg-slate-800 border border-slate-600 text-white rounded p-1.5 text-[10px] outline-none">${options}</select></div>
+                <button onclick="this.parentElement.remove()" class="text-red-400 font-bold px-2 py-1 text-lg leading-none hover:text-red-300 transition-colors">&times;</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function submitPastGame() {
+            const date = document.getElementById('past-date').value;
+            const opp = document.getElementById('past-opp').value || "Unknown";
+            const wScore = parseInt(document.getElementById('past-wavez-score').value) || 0;
+            const oScore = parseInt(document.getElementById('past-opp-score').value) || 0;
+            let result = wScore > oScore ? 'W' : (wScore < oScore ? 'L' : 'D');
+            
+            seasonData.matches.push({ date, opp, result, wScore, oScore });
+            
+            const scorers = document.querySelectorAll('.past-scorer-select');
+            const assists = document.querySelectorAll('.past-assist-select');
+            scorers.forEach((select, index) => {
+                const sId = select.value; const aId = assists[index].value;
+                if(sId) roster.find(p => p.id == sId).goals += 1;
+                if(aId) roster.find(p => p.id == aId).assists += 1;
+            });
+            
+            recalculateSeasonStats();
+            renderRankings(); 
+            closePastGameModal();
+        }
+
+        // --- EDIT EXISTING GAME MODAL ---
+        function openEditGameModal(originalIndex) {
+            currentEditMatchIndex = originalIndex;
+            const match = seasonData.matches[originalIndex];
+            document.getElementById('edit-date').value = match.date;
+            document.getElementById('edit-opp').value = match.opp;
+            document.getElementById('edit-wavez-score').value = match.wScore;
+            document.getElementById('edit-opp-score').value = match.oScore;
+            document.getElementById('edit-game-modal').classList.remove('hidden');
+        }
+        function closeEditGameModal() { document.getElementById('edit-game-modal').classList.add('hidden'); currentEditMatchIndex = null; }
+        
+        function submitEditGame() {
+            const date = document.getElementById('edit-date').value;
+            const opp = document.getElementById('edit-opp').value || "Unknown";
+            const wScore = parseInt(document.getElementById('edit-wavez-score').value) || 0;
+            const oScore = parseInt(document.getElementById('edit-opp-score').value) || 0;
+            const result = wScore > oScore ? 'W' : (wScore < oScore ? 'L' : 'D');
+
+            seasonData.matches[currentEditMatchIndex] = { date, opp, result, wScore, oScore };
+            recalculateSeasonStats();
+            closeEditGameModal();
+        }
+
+        function deleteGame() {
+            if(confirm("Are you sure you want to completely delete this match record?")) {
+                seasonData.matches.splice(currentEditMatchIndex, 1);
+                recalculateSeasonStats();
+                closeEditGameModal();
+            }
+        }
+
+        function recalculateSeasonStats() {
+            seasonData.w = 0; seasonData.l = 0; seasonData.d = 0; seasonData.gf = 0; seasonData.ga = 0;
+            seasonData.matches.forEach(m => {
+                if(m.result === 'W') seasonData.w++; else if(m.result === 'L') seasonData.l++; else if(m.result === 'D') seasonData.d++;
+                seasonData.gf += m.wScore; seasonData.ga += m.oScore;
+            });
+            saveData();
+            renderSeason();
+        }
+
+        // --- FILM ROOM ---
+        function renderFilmRoom() {
+            const playerSelect = document.getElementById('film-player');
+            let options = `<option value="">-- General Team Clip --</option>`;
+            [...roster].sort((a,b) => a.name.localeCompare(b.name)).forEach(p => { options += `<option value="${p.id}">${p.name}</option>`; });
+            playerSelect.innerHTML = options;
+
+            const list = document.getElementById('film-list'); list.innerHTML = '';
+            [...filmClips].reverse().forEach((clip, index) => {
+                let playerBadge = clip.playerId ? (roster.find(p => p.id == clip.playerId)?.name || "Unknown") : "Team";
+                let videoPreview = clip.videoUrl 
+                    ? `<video src="${clip.videoUrl}" controls class="w-full rounded-lg mt-3 mb-2 bg-black border border-slate-700 max-h-48"></video>`
+                    : `<div class="w-full bg-slate-900 rounded-lg p-4 text-center text-[10px] text-slate-500 mt-3 mb-2 border border-slate-700 border-dashed">🎥 Video File: ${clip.fileName} <br>(Requires cloud backend for permanent playback)</div>`;
+
+                list.innerHTML += `
+                    <div class="bg-slate-800 p-3 rounded-lg border border-slate-700 shadow-sm relative">
+                        <div class="flex justify-between items-start">
+                            <div class="w-5/6">
+                                <h4 class="text-sm font-bold text-white leading-tight">${clip.title}</h4>
+                                <span class="text-[9px] text-emerald-400 font-bold uppercase tracking-wider">Tagged: ${playerBadge} @ ${clip.time}</span>
+                            </div>
+                            <button onclick="deleteFilmClip(${index})" class="text-slate-500 hover:text-red-400 text-xl leading-none">&times;</button>
+                        </div>
+                        ${videoPreview}
+                        <p class="text-xs text-slate-300 italic border-l-2 border-slate-600 pl-2 mt-2">"${clip.note}"</p>
+                    </div>`;
+            });
+            if(filmClips.length === 0) list.innerHTML = `<p class="text-xs text-slate-500 italic">No clips saved yet.</p>`;
+        }
+
+        function saveFilmClip() {
+            const title = document.getElementById('film-title').value; const fileInput = document.getElementById('film-file');
+            if(!title) return alert("Please enter a clip title/source.");
+            const file = fileInput.files[0]; const fileName = file ? file.name : "No file attached"; const videoUrl = file ? URL.createObjectURL(file) : null; 
+            const playerId = document.getElementById('film-player').value; const time = document.getElementById('film-time').value || "0:00"; const note = document.getElementById('film-note').value;
+            filmClips.push({ title, playerId, time, note, fileName, videoUrl }); saveData(); renderFilmRoom();
+            document.getElementById('film-title').value = ''; document.getElementById('film-time').value = ''; document.getElementById('film-note').value = ''; document.getElementById('film-file').value = '';
+        }
+        function deleteFilmClip(index) { filmClips.splice(filmClips.length - 1 - index, 1); saveData(); renderFilmRoom(); }
+
+        // --- DYNAMIC PRACTICE PLANNER ---
+        const drillDB = {
+            "Warm Up": ["Jog & Stretch", "Modified FIFA 11", "Juggling", "Rondo 3v1", "Dynamic Movements"],
+            "Ball Control": ["Cone ball skills", "Pass and move square drill", "Pass, scan, dribble", "Hot Box", "Wall Passing"],
+            "Offensive": ["Shooting (multiple versions)", "1v1 Attacking", "Finish then defend", "3v2 Overloads", "Crossing & Finishing"],
+            "Defensive": ["1v1 Shielding & Def. Positioning", "2v2 Defending the Counter", "Pressing Triggers", "Clearing Lines"],
+            "Conditioning": ["Run length of field", "Shuttle Runs", "Jog together line", "Sprints with Ball"],
+            "Scrimmage": ["1v1 / 2v2 Small Sided", "7v7 Half Field", "11v11 Full Field", "AttVsDef Phase Play"]
+        };
+        let savedPractices = JSON.parse(localStorage.getItem('wavezPracticePlans26v1')) || {};
+
+        function initPracticeDates() {
+            const selector = document.getElementById('practice-date-selector'); selector.innerHTML = '';
+            const startDate = new Date(2026, 8, 23); const endDate = new Date(2026, 10, 30); 
+            for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
+                let day = d.getDay();
+                if(day === 2 || day === 3 || day === 4) { 
+                    let dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                    selector.innerHTML += `<option value="${dateStr}">${dateStr}</option>`;
+                }
+            }
+            loadPracticeForDate();
+        }
+
+        function loadPracticeForDate() {
+            const dateStr = document.getElementById('practice-date-selector').value;
+            if (!savedPractices[dateStr]) {
+                savedPractices[dateStr] = [{ duration: 10, cat: "Warm Up", drill: "Modified FIFA 11", notes: "2 lines down 5-6 cones" }, { duration: 10, cat: "Ball Control", drill: "Hot Box", notes: "Divide into 3 teams" }, { duration: 15, cat: "Offensive", drill: "Shooting (multiple versions)", notes: "One touch, then bounce pass" }, { duration: 15, cat: "Defensive", drill: "1v1 Shielding & Def. Positioning", notes: "Rotate quickly" }, { duration: 10, cat: "Conditioning", drill: "Run length of field", notes: "Dribble up, jog back" }];
+                localStorage.setItem('wavezPracticePlans26v1', JSON.stringify(savedPractices));
+            }
+            renderPracticeTimeline();
+        }
+
+        function calculateTime(startTimeStr, addedMinutes) { let [hours, mins] = startTimeStr.split(':').map(Number); let d = new Date(); d.setHours(hours, mins + addedMinutes, 0, 0); return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); }
+        function updatePracticeTimes() { renderPracticeTimeline(); }
+        function updateDrill(index, field, value) { const dateStr = document.getElementById('practice-date-selector').value; savedPractices[dateStr][index][field] = field === 'duration' ? parseInt(value) || 0 : value; localStorage.setItem('wavezPracticePlans26v1', JSON.stringify(savedPractices)); triggerSync(); if (field === 'duration') renderPracticeTimeline(); }
+        function updateCategory(index, newCat) { const dateStr = document.getElementById('practice-date-selector').value; savedPractices[dateStr][index].cat = newCat; savedPractices[dateStr][index].drill = drillDB[newCat][0]; localStorage.setItem('wavezPracticePlans26v1', JSON.stringify(savedPractices)); triggerSync(); renderPracticeTimeline(); }
+        function addDrillBlock() { const dateStr = document.getElementById('practice-date-selector').value; savedPractices[dateStr].push({ duration: 10, cat: "Warm Up", drill: drillDB["Warm Up"][0], notes: "" }); localStorage.setItem('wavezPracticePlans26v1', JSON.stringify(savedPractices)); triggerSync(); renderPracticeTimeline(); }
+        function removeDrillBlock(index) { const dateStr = document.getElementById('practice-date-selector').value; savedPractices[dateStr].splice(index, 1); localStorage.setItem('wavezPracticePlans26v1', JSON.stringify(savedPractices)); triggerSync(); renderPracticeTimeline(); }
+
+        function renderPracticeTimeline() {
+            const container = document.getElementById('practice-timeline'); container.innerHTML = '';
+            const dateStr = document.getElementById('practice-date-selector').value; const plan = savedPractices[dateStr]; const baseTime = document.getElementById('practice-start-time').value; 
+            let cumulativeMinutes = 0;
+            plan.forEach((block, index) => {
+                let blockStartTime = calculateTime(baseTime, cumulativeMinutes); cumulativeMinutes += parseInt(block.duration);
+                let catOptions = Object.keys(drillDB).map(cat => `<option value="${cat}" ${block.cat === cat ? 'selected' : ''}>${cat}</option>`).join('');
+                let currentDrills = drillDB[block.cat] || [];
+                let drillOptions = currentDrills.map(d => `<option value="${d}" ${block.drill === d ? 'selected' : ''}>${d}</option>`).join('');
+
+                container.innerHTML += `
+                    <div class="flex bg-slate-800 rounded-lg overflow-hidden border border-slate-700 shadow-sm relative pr-8">
+                        <div class="bg-slate-700 w-16 p-2 flex flex-col justify-center items-center text-center flex-shrink-0">
+                            <span class="text-[8px] uppercase font-bold text-emerald-400">START</span>
+                            <span class="text-[10px] font-bold text-white">${blockStartTime}</span>
+                        </div>
+                        <div class="p-2 w-full space-y-2">
+                            <div class="flex space-x-2">
+                                <input type="number" value="${block.duration}" onchange="updateDrill(${index}, 'duration', this.value)" class="w-12 bg-slate-900 border border-slate-600 text-white rounded p-1 text-xs text-center outline-none">
+                                <span class="text-[9px] text-slate-400 flex items-center">MINS</span>
+                                <select onchange="updateCategory(${index}, this.value)" class="flex-1 bg-slate-900 border border-slate-600 text-emerald-400 font-bold rounded p-1 text-xs outline-none">${catOptions}</select>
+                            </div>
+                            <select onchange="updateDrill(${index}, 'drill', this.value)" class="w-full bg-slate-900 border border-slate-600 text-white rounded p-1 text-xs outline-none">${drillOptions}</select>
+                            <input type="text" value="${block.notes}" placeholder="Optional Notes..." onchange="updateDrill(${index}, 'notes', this.value)" class="w-full bg-slate-900 border border-slate-600 text-slate-400 rounded p-1 text-xs outline-none italic">
+                        </div>
+                        <button onclick="removeDrillBlock(${index})" class="absolute right-0 top-0 bottom-0 w-8 bg-red-900/40 text-red-400 hover:bg-red-900/80 transition-colors text-lg font-bold flex items-center justify-center border-l border-slate-700">&times;</button>
+                    </div>`;
+            });
+        }
+
+        // --- RENDERERS ---
+        function renderRoster() {
+            const field = document.getElementById('on-field'); const bench = document.getElementById('bench'); field.innerHTML = ''; bench.innerHTML = '';
+            roster.forEach(p => {
+                const isField = p.status === 'field'; const timeStr = formatTime(p.time);
+                const bg = isField ? 'bg-slate-800 border-emerald-500/30' : 'bg-slate-900 border-slate-700 opacity-75';
+                const posOptions = validPositions.map(pos => `<option value="${pos}" ${p.pos === pos ? 'selected' : ''}>${pos}</option>`).join('');
+                const card = `<div onclick="openEval(${p.id})" class="${bg} border p-3 rounded-lg flex justify-between items-center cursor-pointer shadow-sm active:scale-95 transition-transform"><div class="flex items-center space-x-2"><span class="${p.isGuest ? 'bg-blue-600' : 'bg-slate-700'} text-slate-200 text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full flex-shrink-0">${p.number}</span><div><div class="font-bold text-sm leading-tight">${p.name}</div><select class="mt-1 bg-slate-900/80 border border-slate-600 text-emerald-400 font-bold text-[9px] uppercase rounded outline-none w-24 p-0.5" onclick="event.stopPropagation()" onchange="changePosition(event, ${p.id}, this.value)">${posOptions}</select></div></div><div class="${isField ? 'text-emerald-400' : 'text-slate-400'} text-xs font-mono font-bold">${timeStr}</div></div>`;
+                if (isField) field.innerHTML += card; else bench.innerHTML += card;
+            });
+        }
+
+        function renderRankings() {
+            const tbody = document.getElementById('rankings-table'); tbody.innerHTML = '';
+            [...roster].sort((a, b) => b.ranking - a.ranking).forEach(p => {
+                let totalMins = Math.floor(p.totalTime / 60); let avgMins = p.gp > 0 ? (totalMins / p.gp).toFixed(1) : "0.0";
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-700/50 transition-colors border-b border-slate-700/50">
+                        <td class="p-3 font-bold text-slate-500 text-xs">${p.number}</td>
+                        <td class="p-3"><div class="font-semibold ${p.isGuest ? 'text-blue-300' : ''}">${p.name}</div><div class="text-[9px] text-slate-500 uppercase">${p.pos}</div></td>
+                        <td class="p-3 text-center text-blue-300 font-bold border-l border-slate-700/50">${totalMins}</td>
+                        <td class="p-3 text-center text-blue-300 font-bold">${avgMins}</td>
+                        <td class="p-3 text-center border-l border-slate-700/50 ${p.goals > 0 ? 'text-emerald-400 font-bold' : 'text-slate-600'} cursor-pointer hover:bg-slate-700 rounded" onclick="manualAdjustStat(${p.id}, 'goals')" title="Edit Goals">${p.goals}</td>
+                        <td class="p-3 text-center ${p.assists > 0 ? 'text-emerald-400 font-bold' : 'text-slate-600'} cursor-pointer hover:bg-slate-700 rounded" onclick="manualAdjustStat(${p.id}, 'assists')" title="Edit Assists">${p.assists}</td>
+                        <td class="p-3 text-center ${p.saves > 0 ? 'text-amber-400 font-bold' : 'text-slate-600'} cursor-pointer hover:bg-slate-700 rounded" onclick="manualAdjustStat(${p.id}, 'saves')" title="Edit Saves">${p.saves}</td>
+                        <td class="p-3 text-center border-l border-slate-700/50 ${p.capt > 0 ? 'text-emerald-400 font-bold' : 'text-slate-600'} cursor-pointer hover:bg-slate-700 rounded" onclick="manualAdjustStat(${p.id}, 'capt')" title="Edit Caps">${p.capt}</td>
+                        <td class="p-3 text-center text-slate-400 text-xs border-l border-slate-700/50">${p.gp}</td>
+                        <td class="p-3 text-right font-bold text-lg ${p.ranking >= 80 ? 'text-emerald-400' : (p.ranking >= 70 ? 'text-blue-400' : 'text-amber-400')} cursor-pointer hover:bg-slate-700 transition-colors rounded" onclick="manualAdjustStat(${p.id}, 'ranking')" title="Edit OVR">${p.ranking.toFixed(1)} <span class="text-[10px] text-slate-500">✎</span></td>
+                    </tr>`;
+            });
+        }
+        
+        function renderSeason() {
+            document.getElementById('szn-w').innerText = seasonData.w; document.getElementById('szn-l').innerText = seasonData.l; document.getElementById('szn-d').innerText = seasonData.d;
+            const hist = document.getElementById('match-history-list'); hist.innerHTML = '';
+            
+            // Map original index so we can safely edit/delete after reversing the array for display
+            [...seasonData.matches].map((m, i) => ({...m, originalIndex: i})).reverse().forEach(m => { 
+                hist.innerHTML += `
+                <div class="flex justify-between items-center bg-slate-800 p-3 rounded-lg border border-slate-700 shadow-sm relative">
+                    <div>
+                        <div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">${m.date}</div>
+                        <div class="font-bold text-sm pr-6">${m.opp}</div>
+                    </div>
+                    <div class="flex items-center space-x-4 text-right pr-6">
+                        <span class="font-bold text-lg ${m.result === 'W' ? 'text-emerald-400' : (m.result === 'L' ? 'text-red-400' : 'text-slate-400')}">${m.result}</span>
+                        <span class="font-bold text-slate-300 bg-slate-900 px-2 py-1 rounded">${m.wScore} - ${m.oScore}</span>
+                    </div>
+                    <button onclick="openEditGameModal(${m.originalIndex})" class="absolute top-2 right-2 text-slate-500 hover:text-emerald-400 text-xs p-2">✎</button>
+                </div>`; 
+            });
+            if(seasonData.matches.length === 0) hist.innerHTML = `<p class="text-xs text-slate-500 italic">No games logged yet.</p>`;
+        }
+
+        function resetSeasonWarning() {
+            if(confirm("Erase all Season Stats and Match History?")) {
+                localStorage.removeItem('wavezSeason26v6');
+                location.reload();
+            }
+        }
+
+        document.getElementById('match-date').valueAsDate = new Date(); initPracticeDates(); renderRoster();
+    </script>
+</body>
+</html>
