@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sideline OS | 2026 Wavez</title>
+    <title>Sideline OS | Wavez</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .tab-content { display: none; }
@@ -18,20 +18,20 @@
 </head>
 <body class="bg-slate-900 text-white font-sans antialiased pb-24 no-select">
 
-    <!-- Header -->
+    <!-- Header & Season Manager -->
     <header class="bg-slate-800 p-4 shadow-md flex justify-between items-center sticky top-0 z-10 border-b border-slate-700">
         <div>
-            <h1 class="text-xl font-bold text-emerald-400">2026 Wavez</h1>
+            <h1 class="text-xl font-bold text-emerald-400">Wavez OS</h1>
             <div class="flex items-center space-x-2 mt-1">
-                <select id="role-switcher" onchange="triggerSync()" class="bg-slate-900 text-[10px] text-slate-300 border border-slate-600 rounded outline-none p-1 font-bold uppercase tracking-wider">
-                    <option value="matt">HC Matt Wright</option>
-                    <option value="katie">AC Katie Templin</option>
-                    <option value="lauren">AC Lauren May</option>
-                    <option value="jenny">TM Jenny Zuniga</option>
+                <!-- Season Switcher -->
+                <select id="season-switcher" onchange="changeSeason(this.value)" class="bg-slate-900 text-[10px] text-emerald-400 border border-slate-600 rounded outline-none p-1 font-bold uppercase tracking-wider">
+                    <!-- Injected via JS -->
                 </select>
-                <span id="sync-status" class="text-[9px] text-emerald-400 font-bold flex items-center">
-                    <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse mr-1"></span> Synced
-                </span>
+                <button onclick="createNewSeason()" class="bg-slate-700 hover:bg-slate-600 text-white text-[10px] px-2 py-1 rounded font-bold transition-colors" title="Start New Season">+</button>
+                
+                <select id="role-switcher" onchange="triggerSync()" class="bg-slate-900 text-[10px] text-slate-400 border border-slate-600 rounded outline-none p-1 font-bold uppercase tracking-wider hidden sm:block">
+                    <option value="matt">HC Matt Wright</option><option value="katie">AC Katie Templin</option><option value="lauren">AC Lauren May</option><option value="jenny">TM Jenny Zuniga</option>
+                </select>
             </div>
         </div>
         <div class="text-right">
@@ -96,7 +96,7 @@
     <main id="tab-postgame" class="tab-content p-4">
         <div class="mb-4">
             <h2 class="text-lg font-bold text-emerald-400">Post-Game Report</h2>
-            <p class="text-xs text-slate-400">Finalize stats and log data to the database.</p>
+            <p class="text-xs text-slate-400">Finalize stats and log data to the <span class="season-label text-emerald-500"></span> database.</p>
         </div>
         
         <div class="mb-6 bg-slate-800 p-3 rounded-lg border border-slate-700 shadow-lg">
@@ -120,7 +120,7 @@
         <div class="mb-4 flex justify-between items-center">
             <div>
                 <h2 class="text-lg font-bold text-emerald-400">Season Dashboard</h2>
-                <p class="text-xs text-slate-400">Fall 2026 Record</p>
+                <p class="text-xs text-slate-400"><span class="season-label font-bold text-emerald-500"></span> Record</p>
             </div>
             <div class="flex space-x-2">
                 <button onclick="openPastGameModal()" class="text-[10px] bg-emerald-900/50 text-emerald-400 px-2 py-1 rounded border border-emerald-800 transition-colors hover:bg-emerald-900/80">+ Add Past Game</button>
@@ -152,7 +152,7 @@
         <div class="flex justify-between items-center mb-4">
             <div>
                 <h2 class="text-lg font-bold text-emerald-400">Player Database</h2>
-                <p class="text-[10px] text-slate-400 uppercase tracking-wider">Tap a stat or OVR to manually edit.</p>
+                <p class="text-[10px] text-slate-400 uppercase tracking-wider"><span class="season-label text-emerald-500 font-bold"></span> • Tap a stat to edit.</p>
             </div>
         </div>
         <div class="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden overflow-x-auto shadow-lg">
@@ -181,7 +181,7 @@
         <div class="flex justify-between items-center mb-4">
             <div>
                 <h2 class="text-lg font-bold text-emerald-400">Practice Builder</h2>
-                <p class="text-xs text-slate-400">Fall 2026 Cycle</p>
+                <p class="text-xs text-slate-400"><span class="season-label font-bold text-emerald-500"></span> Cycle</p>
             </div>
             <div class="text-right">
                 <label class="block text-[9px] text-slate-400 uppercase tracking-wider font-bold mb-1">Start Time</label>
@@ -202,18 +202,15 @@
     <main id="tab-film" class="tab-content p-4">
         <div class="mb-4">
             <h2 class="text-lg font-bold text-emerald-400">Film Room</h2>
-            <p class="text-xs text-slate-400">Upload and tag game clips for video review.</p>
+            <p class="text-xs text-slate-400">Upload and tag game clips for <span class="season-label text-emerald-500"></span>.</p>
         </div>
 
         <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg mb-6">
             <h3 class="text-sm font-bold text-white mb-3 border-b border-slate-700 pb-2">Upload New Clip</h3>
-            
             <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Video File</label>
             <input type="file" id="film-file" accept="video/*" class="w-full bg-slate-900 border border-slate-600 text-slate-300 rounded p-1.5 text-xs outline-none mb-3 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-[10px] file:font-bold file:uppercase file:tracking-wider file:bg-slate-700 file:text-emerald-400 hover:file:bg-slate-600 cursor-pointer">
-
             <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Clip Title</label>
             <input type="text" id="film-title" placeholder="e.g. Saturday vs Surf - 2nd Half" class="w-full bg-slate-900 border border-slate-600 text-white rounded p-2 text-xs outline-none mb-3">
-            
             <div class="flex space-x-2 mb-3">
                 <div class="w-1/2">
                     <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Tag Player</label>
@@ -224,10 +221,8 @@
                     <input type="text" id="film-time" placeholder="e.g. 14:32" class="w-full bg-slate-900 border border-slate-600 text-white rounded p-2 text-xs outline-none">
                 </div>
             </div>
-
             <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Coaching Note</label>
-            <textarea id="film-note" rows="2" placeholder="Great overlapping run, but keep your head up before the cross..." class="w-full bg-slate-900 border border-slate-600 text-white rounded p-2 text-xs outline-none mb-4"></textarea>
-
+            <textarea id="film-note" rows="2" placeholder="Great overlapping run..." class="w-full bg-slate-900 border border-slate-600 text-white rounded p-2 text-xs outline-none mb-4"></textarea>
             <button onclick="saveFilmClip()" class="w-full py-3 bg-emerald-500 text-white font-bold rounded-lg text-xs uppercase tracking-wider hover:bg-emerald-600 transition-colors shadow-lg">Save & Sync to Player</button>
         </div>
 
@@ -245,12 +240,10 @@
                 <button onclick="deleteGame()" class="text-[10px] bg-red-900/50 text-red-400 px-2 py-1 rounded border border-red-800 hover:bg-red-900/80 transition-colors">Delete Match</button>
             </div>
             <p class="text-[10px] text-slate-400 mb-4">Update the score or opponent for this game.</p>
-            
             <div class="flex space-x-2 mb-3">
                 <input type="date" id="edit-date" class="w-1/2 bg-slate-900 border border-slate-600 text-white rounded-lg p-2 text-xs outline-none">
                 <input type="text" id="edit-opp" placeholder="Opponent" class="w-1/2 bg-slate-900 border border-slate-600 text-white rounded-lg p-2 text-xs outline-none">
             </div>
-            
             <div class="flex space-x-3 mb-4">
                 <div class="w-1/2">
                     <label class="block text-[9px] text-slate-400 uppercase font-bold mb-1">Wavez Goals</label>
@@ -261,9 +254,7 @@
                     <input type="number" id="edit-opp-score" min="0" class="w-full bg-slate-900 border border-slate-600 text-white rounded-lg p-2 outline-none text-center font-bold">
                 </div>
             </div>
-
             <p class="text-[9px] text-amber-500 italic mb-4 leading-tight">Note: Changing the score here automatically recalculates the Team Season Record. Individual player stats (Goals/Assists) must be manually edited in the Database tab.</p>
-
             <div class="flex space-x-3">
                 <button onclick="closeEditGameModal()" class="flex-1 py-3 bg-slate-700 text-slate-300 rounded-lg font-bold text-sm hover:bg-slate-600 transition-colors">Cancel</button>
                 <button onclick="submitEditGame()" class="flex-1 py-3 bg-emerald-500 text-white rounded-lg font-bold text-sm hover:bg-emerald-600 transition-colors">Save Changes</button>
@@ -276,12 +267,10 @@
         <div class="bg-slate-800 border border-slate-600 rounded-xl p-5 w-full max-w-sm shadow-2xl overflow-y-auto max-h-[90vh]">
             <h3 class="text-xl font-bold text-white mb-1">Log Past Game</h3>
             <p class="text-xs text-slate-400 mb-4">Add historical match data and goal stats.</p>
-            
             <div class="flex space-x-2 mb-3">
                 <input type="date" id="past-date" class="w-1/2 bg-slate-900 border border-slate-600 text-white rounded-lg p-2 text-xs outline-none">
                 <input type="text" id="past-opp" placeholder="Opponent" class="w-1/2 bg-slate-900 border border-slate-600 text-white rounded-lg p-2 text-xs outline-none">
             </div>
-            
             <div class="flex space-x-3 mb-4">
                 <div class="w-1/2">
                     <label class="block text-[9px] text-slate-400 uppercase font-bold mb-1">Wavez Goals</label>
@@ -292,7 +281,6 @@
                     <input type="number" id="past-opp-score" value="0" min="0" class="w-full bg-slate-900 border border-slate-600 text-white rounded-lg p-2 outline-none text-center font-bold">
                 </div>
             </div>
-
             <div class="border-t border-slate-700 pt-3 mb-4">
                 <div class="flex justify-between items-center mb-2">
                     <label class="block text-[10px] text-emerald-400 uppercase font-bold">Player Stats (Optional)</label>
@@ -300,7 +288,6 @@
                 </div>
                 <div id="past-goals-container" class="space-y-2 max-h-32 overflow-y-auto pr-1"></div>
             </div>
-
             <div class="flex space-x-3">
                 <button onclick="closePastGameModal()" class="flex-1 py-3 bg-slate-700 text-slate-300 rounded-lg font-bold text-sm hover:bg-slate-600 transition-colors">Cancel</button>
                 <button onclick="submitPastGame()" class="flex-1 py-3 bg-emerald-500 text-white rounded-lg font-bold text-sm hover:bg-emerald-600 transition-colors">Save Match</button>
@@ -394,42 +381,122 @@
     </nav>
 
     <script>
-        // --- DATA & STATE ---
+        // --- DATA & STATE INIT ---
         const validPositions = ["Goalie", "Left back", "Center Back Left", "Center Back Right", "Right back", "Mid Left", "Center mid", "Mid Right", "Left Winger", "Striker", "Right Winger"];
-        const defaultRoster = [
-            { id: 1, name: "Finnley", number: 3, pos: "Goalie", ranking: 75.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
-            { id: 2, name: "Cate", number: 26, pos: "Left back", ranking: 82.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
-            { id: 3, name: "Grace", number: 15, pos: "Center Back Left", ranking: 72.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
-            { id: 4, name: "Coco", number: 14, pos: "Center Back Right", ranking: 86.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
-            { id: 5, name: "Josie", number: 7, pos: "Right back", ranking: 82.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
-            { id: 6, name: "Olivia", number: 30, pos: "Mid Left", ranking: 85.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
-            { id: 7, name: "Emily", number: 11, pos: "Center mid", ranking: 80.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
-            { id: 8, name: "Jiliana", number: 9, pos: "Mid Right", ranking: 75.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
-            { id: 9, name: "Eliana", number: 39, pos: "Left Winger", ranking: 75.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
-            { id: 10, name: "Elizabeth", number: 23, pos: "Striker", ranking: 87.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
-            { id: 11, name: "Julissa", number: 8, pos: "Right Winger", ranking: 80.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
-            { id: 12, name: "Zara", number: 10, pos: "Goalie", ranking: 60.0, status: "bench", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
-            { id: 13, name: "Milania", number: 12, pos: "Right Winger", ranking: 70.0, status: "bench", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
-            { id: 14, name: "Piper", number: 27, pos: "Striker", ranking: 85.0, status: "bench", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
-            { id: 15, name: "Kensley", number: 5, pos: "Center mid", ranking: 73.0, status: "bench", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 }
-        ];
-
-        let roster = JSON.parse(localStorage.getItem('wavezRoster26v8')) || defaultRoster;
-        let seasonData = JSON.parse(localStorage.getItem('wavezSeason26v6')) || { w:0, l:0, d:0, gf:0, ga:0, matches: [] };
-        let filmClips = JSON.parse(localStorage.getItem('wavezFilm26v2')) || [];
         
+        function getDefaultRoster() {
+            return [
+                { id: 1, name: "Finnley", number: 3, pos: "Goalie", ranking: 75.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+                { id: 2, name: "Cate", number: 26, pos: "Left back", ranking: 82.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+                { id: 3, name: "Grace", number: 15, pos: "Center Back Left", ranking: 72.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+                { id: 4, name: "Coco", number: 14, pos: "Center Back Right", ranking: 86.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+                { id: 5, name: "Josie", number: 7, pos: "Right back", ranking: 82.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+                { id: 6, name: "Olivia", number: 30, pos: "Mid Left", ranking: 85.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+                { id: 7, name: "Emily", number: 11, pos: "Center mid", ranking: 80.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+                { id: 8, name: "Jiliana", number: 9, pos: "Mid Right", ranking: 75.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+                { id: 9, name: "Eliana", number: 39, pos: "Left Winger", ranking: 75.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+                { id: 10, name: "Elizabeth", number: 23, pos: "Striker", ranking: 87.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+                { id: 11, name: "Julissa", number: 8, pos: "Right Winger", ranking: 80.0, status: "field", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+                { id: 12, name: "Zara", number: 10, pos: "Goalie", ranking: 60.0, status: "bench", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+                { id: 13, name: "Milania", number: 12, pos: "Right Winger", ranking: 70.0, status: "bench", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+                { id: 14, name: "Piper", number: 27, pos: "Striker", ranking: 85.0, status: "bench", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 },
+                { id: 15, name: "Kensley", number: 5, pos: "Center mid", ranking: 73.0, status: "bench", time: 0, totalTime: 0, goals: 0, assists: 0, saves: 0, yellows: 0, reds: 0, gp: 0, capt: 0 }
+            ];
+        }
+
+        if (!localStorage.getItem('wavezSeasonsList')) {
+            let oldRoster = localStorage.getItem('wavezRoster26v8') || localStorage.getItem('wavezRoster26v7') || localStorage.getItem('wavezRoster26v6');
+            if (oldRoster) {
+                localStorage.setItem('Roster_Fall 2026', oldRoster);
+                localStorage.setItem('Season_Fall 2026', localStorage.getItem('wavezSeason26v6') || localStorage.getItem('wavezSeason26v5') || '{}');
+                localStorage.setItem('Film_Fall 2026', localStorage.getItem('wavezFilm26v2') || '[]');
+                localStorage.setItem('Practice_Fall 2026', localStorage.getItem('wavezPracticePlans26v1') || '{}');
+                localStorage.setItem('PracticeTimes_Fall 2026', '{}');
+            } else {
+                localStorage.setItem('Roster_Fall 2026', JSON.stringify(getDefaultRoster()));
+                localStorage.setItem('Season_Fall 2026', JSON.stringify({ w:0, l:0, d:0, gf:0, ga:0, matches: [] }));
+                localStorage.setItem('Film_Fall 2026', '[]');
+                localStorage.setItem('Practice_Fall 2026', '{}');
+                localStorage.setItem('PracticeTimes_Fall 2026', '{}');
+            }
+            localStorage.setItem('wavezSeasonsList', JSON.stringify(["Fall 2026"]));
+            localStorage.setItem('wavezCurrentSeason', "Fall 2026");
+        }
+
+        let appSeasons = JSON.parse(localStorage.getItem('wavezSeasonsList'));
+        let currentSeason = localStorage.getItem('wavezCurrentSeason');
+        
+        let roster, seasonData, filmClips, savedPractices, practiceStartTimes;
         let timerInterval; let seconds = 0; let isRunning = false; let scores = { home: 0, away: 0 };
         let currentEvalId = null; let tempStats = { saves: 0, yellows: 0, reds: 0 }; let postGameRatings = {};
         let currentEditMatchIndex = null;
 
+        function getStorageKey(base) { return base + "_" + currentSeason; }
+
+        function loadData() {
+            roster = JSON.parse(localStorage.getItem(getStorageKey('Roster'))) || getDefaultRoster();
+            seasonData = JSON.parse(localStorage.getItem(getStorageKey('Season'))) || { w:0, l:0, d:0, gf:0, ga:0, matches: [] };
+            filmClips = JSON.parse(localStorage.getItem(getStorageKey('Film'))) || [];
+            savedPractices = JSON.parse(localStorage.getItem(getStorageKey('Practice'))) || {};
+            practiceStartTimes = JSON.parse(localStorage.getItem(getStorageKey('PracticeTimes'))) || {};
+            
+            if(isRunning) toggleTimer();
+            seconds = 0; scores = { home: 0, away: 0 };
+            document.getElementById('game-clock').innerText = "00:00"; 
+            document.getElementById(`score-home`).innerText = "0";
+            document.getElementById(`score-away`).innerText = "0";
+
+            populateSeasonDropdown();
+            updateSeasonLabels();
+        }
+
         function saveData() { 
-            localStorage.setItem('wavezRoster26v8', JSON.stringify(roster)); 
-            localStorage.setItem('wavezSeason26v6', JSON.stringify(seasonData)); 
+            localStorage.setItem(getStorageKey('Roster'), JSON.stringify(roster)); 
+            localStorage.setItem(getStorageKey('Season'), JSON.stringify(seasonData)); 
             const safeFilmClips = filmClips.map(clip => ({ ...clip, videoUrl: null }));
-            localStorage.setItem('wavezFilm26v2', JSON.stringify(safeFilmClips)); 
+            localStorage.setItem(getStorageKey('Film'), JSON.stringify(safeFilmClips)); 
+            localStorage.setItem(getStorageKey('Practice'), JSON.stringify(savedPractices));
+            localStorage.setItem(getStorageKey('PracticeTimes'), JSON.stringify(practiceStartTimes));
+            
+            localStorage.setItem('wavezSeasonsList', JSON.stringify(appSeasons));
+            localStorage.setItem('wavezCurrentSeason', currentSeason);
             triggerSync();
         }
-        
+
+        function populateSeasonDropdown() {
+            const dropdown = document.getElementById('season-switcher');
+            dropdown.innerHTML = appSeasons.map(s => `<option value="${s}" ${s === currentSeason ? 'selected' : ''}>${s}</option>`).join('');
+        }
+
+        function updateSeasonLabels() { document.querySelectorAll('.season-label').forEach(el => el.innerText = currentSeason); }
+
+        function changeSeason(newSeason) {
+            currentSeason = newSeason;
+            localStorage.setItem('wavezCurrentSeason', currentSeason);
+            loadData(); refreshAllUI();
+        }
+
+        function createNewSeason() {
+            const newSeason = prompt("Enter new season name (e.g., 'Spring 2027'):");
+            if (!newSeason || newSeason.trim() === "") return;
+            if (appSeasons.includes(newSeason)) { alert("Season already exists!"); return; }
+            
+            const carriedRoster = roster.filter(p => !p.isGuest).map(p => ({
+                ...p, goals:0, assists:0, saves:0, yellows:0, reds:0, gp:0, capt:0, time:0, totalTime:0, status: 'bench'
+            }));
+            
+            appSeasons.push(newSeason); currentSeason = newSeason;
+            roster = carriedRoster.length > 0 ? carriedRoster : getDefaultRoster();
+            seasonData = { w:0, l:0, d:0, gf:0, ga:0, matches: [] };
+            filmClips = []; savedPractices = {}; practiceStartTimes = {};
+            
+            saveData(); loadData(); refreshAllUI();
+            
+            document.getElementById('match-date').valueAsDate = new Date(); 
+            initPracticeDates();
+        }
+
+        function refreshAllUI() { renderRoster(); renderRankings(); renderSeason(); renderFilmRoom(); loadPracticeForDate(); }
         function formatTime(sec) { return `${Math.floor(sec / 60).toString().padStart(2, '0')}:${(sec % 60).toString().padStart(2, '0')}`; }
 
         function triggerSync() {
@@ -531,11 +598,11 @@
             scores = { home: 0, away: 0 }; seconds = 0; if(isRunning) toggleTimer(); 
             document.getElementById('game-clock').innerText = "00:00"; document.getElementById('score-home').innerText = "0"; document.getElementById('score-away').innerText = "0"; document.getElementById('match-opp').value = ""; postGameRatings = {}; 
             
-            recalculateSeasonStats(); // Ensure pure sync
+            recalculateSeasonStats(); 
             renderRoster(); switchTab('season');
         }
 
-        // --- PAST GAME MODAL (ADD) ---
+        // --- PAST GAME MODAL (ADD/EDIT/DELETE) ---
         function openPastGameModal() {
             document.getElementById('past-date').valueAsDate = new Date();
             document.getElementById('past-goals-container').innerHTML = '';
@@ -575,12 +642,9 @@
                 if(aId) roster.find(p => p.id == aId).assists += 1;
             });
             
-            recalculateSeasonStats();
-            renderRankings(); 
-            closePastGameModal();
+            recalculateSeasonStats(); renderRankings(); closePastGameModal();
         }
 
-        // --- EDIT EXISTING GAME MODAL ---
         function openEditGameModal(originalIndex) {
             currentEditMatchIndex = originalIndex;
             const match = seasonData.matches[originalIndex];
@@ -605,6 +669,7 @@
         }
 
         function deleteGame() {
+            if(currentEditMatchIndex === null || currentEditMatchIndex === undefined) return;
             if(confirm("Are you sure you want to completely delete this match record?")) {
                 seasonData.matches.splice(currentEditMatchIndex, 1);
                 recalculateSeasonStats();
@@ -615,11 +680,11 @@
         function recalculateSeasonStats() {
             seasonData.w = 0; seasonData.l = 0; seasonData.d = 0; seasonData.gf = 0; seasonData.ga = 0;
             seasonData.matches.forEach(m => {
+                let w = parseInt(m.wScore) || 0; let o = parseInt(m.oScore) || 0;
                 if(m.result === 'W') seasonData.w++; else if(m.result === 'L') seasonData.l++; else if(m.result === 'D') seasonData.d++;
-                seasonData.gf += m.wScore; seasonData.ga += m.oScore;
+                seasonData.gf += w; seasonData.ga += o;
             });
-            saveData();
-            renderSeason();
+            saveData(); renderSeason();
         }
 
         // --- FILM ROOM ---
@@ -671,7 +736,6 @@
             "Conditioning": ["Run length of field", "Shuttle Runs", "Jog together line", "Sprints with Ball"],
             "Scrimmage": ["1v1 / 2v2 Small Sided", "7v7 Half Field", "11v11 Full Field", "AttVsDef Phase Play"]
         };
-        let savedPractices = JSON.parse(localStorage.getItem('wavezPracticePlans26v1')) || {};
 
         function initPracticeDates() {
             const selector = document.getElementById('practice-date-selector'); selector.innerHTML = '';
@@ -687,27 +751,85 @@
         }
 
         function loadPracticeForDate() {
-            const dateStr = document.getElementById('practice-date-selector').value;
+            const selector = document.getElementById('practice-date-selector');
+            if(!selector) return;
+            const dateStr = selector.value;
+            
             if (!savedPractices[dateStr]) {
-                savedPractices[dateStr] = [{ duration: 10, cat: "Warm Up", drill: "Modified FIFA 11", notes: "2 lines down 5-6 cones" }, { duration: 10, cat: "Ball Control", drill: "Hot Box", notes: "Divide into 3 teams" }, { duration: 15, cat: "Offensive", drill: "Shooting (multiple versions)", notes: "One touch, then bounce pass" }, { duration: 15, cat: "Defensive", drill: "1v1 Shielding & Def. Positioning", notes: "Rotate quickly" }, { duration: 10, cat: "Conditioning", drill: "Run length of field", notes: "Dribble up, jog back" }];
-                localStorage.setItem('wavezPracticePlans26v1', JSON.stringify(savedPractices));
+                savedPractices[dateStr] = [
+                    { duration: 10, cat: "Warm Up", drill: "Modified FIFA 11", notes: "2 lines down 5-6 cones" },
+                    { duration: 10, cat: "Ball Control", drill: "Hot Box", notes: "Divide into 3 teams" },
+                    { duration: 15, cat: "Offensive", drill: "Shooting (multiple versions)", notes: "One touch, then bounce pass" },
+                    { duration: 15, cat: "Defensive", drill: "1v1 Shielding & Def. Positioning", notes: "Rotate quickly" },
+                    { duration: 10, cat: "Conditioning", drill: "Run length of field", notes: "Dribble up, jog back" }
+                ];
+                saveData();
             }
+            document.getElementById('practice-start-time').value = practiceStartTimes[dateStr] || "17:00";
             renderPracticeTimeline();
         }
 
-        function calculateTime(startTimeStr, addedMinutes) { let [hours, mins] = startTimeStr.split(':').map(Number); let d = new Date(); d.setHours(hours, mins + addedMinutes, 0, 0); return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); }
-        function updatePracticeTimes() { renderPracticeTimeline(); }
-        function updateDrill(index, field, value) { const dateStr = document.getElementById('practice-date-selector').value; savedPractices[dateStr][index][field] = field === 'duration' ? parseInt(value) || 0 : value; localStorage.setItem('wavezPracticePlans26v1', JSON.stringify(savedPractices)); triggerSync(); if (field === 'duration') renderPracticeTimeline(); }
-        function updateCategory(index, newCat) { const dateStr = document.getElementById('practice-date-selector').value; savedPractices[dateStr][index].cat = newCat; savedPractices[dateStr][index].drill = drillDB[newCat][0]; localStorage.setItem('wavezPracticePlans26v1', JSON.stringify(savedPractices)); triggerSync(); renderPracticeTimeline(); }
-        function addDrillBlock() { const dateStr = document.getElementById('practice-date-selector').value; savedPractices[dateStr].push({ duration: 10, cat: "Warm Up", drill: drillDB["Warm Up"][0], notes: "" }); localStorage.setItem('wavezPracticePlans26v1', JSON.stringify(savedPractices)); triggerSync(); renderPracticeTimeline(); }
-        function removeDrillBlock(index) { const dateStr = document.getElementById('practice-date-selector').value; savedPractices[dateStr].splice(index, 1); localStorage.setItem('wavezPracticePlans26v1', JSON.stringify(savedPractices)); triggerSync(); renderPracticeTimeline(); }
+        function calculateTime(startTimeStr, addedMinutes) { 
+            let [hours, mins] = startTimeStr.split(':').map(Number); 
+            let d = new Date(); 
+            d.setHours(hours, mins + addedMinutes, 0, 0); 
+            return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); 
+        }
+        
+        function updatePracticeTimes() { 
+            const dateStr = document.getElementById('practice-date-selector').value; 
+            practiceStartTimes[dateStr] = document.getElementById('practice-start-time').value;
+            saveData();
+            renderPracticeTimeline(); 
+        }
+        
+        function updateDrill(index, field, value) { 
+            const dateStr = document.getElementById('practice-date-selector').value; 
+            savedPractices[dateStr][index][field] = field === 'duration' ? parseInt(value) || 0 : value; 
+            saveData(); 
+            if (field === 'duration') renderPracticeTimeline(); 
+        }
+        
+        function updateCategory(index, newCat) { 
+            const dateStr = document.getElementById('practice-date-selector').value; 
+            savedPractices[dateStr][index].cat = newCat; 
+            savedPractices[dateStr][index].drill = drillDB[newCat][0]; 
+            saveData(); 
+            renderPracticeTimeline(); 
+        }
+        
+        function addDrillBlock() { 
+            const dateStr = document.getElementById('practice-date-selector').value; 
+            if(!dateStr) return alert("Select a date first."); 
+            if(!savedPractices[dateStr]) savedPractices[dateStr] = []; 
+            savedPractices[dateStr].push({ duration: 10, cat: "Warm Up", drill: drillDB["Warm Up"][0], notes: "" }); 
+            saveData(); 
+            renderPracticeTimeline(); 
+        }
+        
+        function removeDrillBlock(index) { 
+            const dateStr = document.getElementById('practice-date-selector').value; 
+            savedPractices[dateStr].splice(index, 1); 
+            saveData(); 
+            renderPracticeTimeline(); 
+        }
 
         function renderPracticeTimeline() {
             const container = document.getElementById('practice-timeline'); container.innerHTML = '';
-            const dateStr = document.getElementById('practice-date-selector').value; const plan = savedPractices[dateStr]; const baseTime = document.getElementById('practice-start-time').value; 
+            const dateStr = document.getElementById('practice-date-selector').value; if(!dateStr) return; 
+            const plan = savedPractices[dateStr] || []; 
+            const baseTime = document.getElementById('practice-start-time').value || "17:00"; 
             let cumulativeMinutes = 0;
+
+            if(plan.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-500 italic text-center py-4 border border-slate-700 border-dashed rounded-lg">No session built for this date. Click + Add Drill Block below.</p>`;
+                return;
+            }
+
             plan.forEach((block, index) => {
-                let blockStartTime = calculateTime(baseTime, cumulativeMinutes); cumulativeMinutes += parseInt(block.duration);
+                let blockStartTime = calculateTime(baseTime, cumulativeMinutes); 
+                cumulativeMinutes += parseInt(block.duration) || 0;
+                
                 let catOptions = Object.keys(drillDB).map(cat => `<option value="${cat}" ${block.cat === cat ? 'selected' : ''}>${cat}</option>`).join('');
                 let currentDrills = drillDB[block.cat] || [];
                 let drillOptions = currentDrills.map(d => `<option value="${d}" ${block.drill === d ? 'selected' : ''}>${d}</option>`).join('');
@@ -759,7 +881,7 @@
                         <td class="p-3 text-center ${p.saves > 0 ? 'text-amber-400 font-bold' : 'text-slate-600'} cursor-pointer hover:bg-slate-700 rounded" onclick="manualAdjustStat(${p.id}, 'saves')" title="Edit Saves">${p.saves}</td>
                         <td class="p-3 text-center border-l border-slate-700/50 ${p.capt > 0 ? 'text-emerald-400 font-bold' : 'text-slate-600'} cursor-pointer hover:bg-slate-700 rounded" onclick="manualAdjustStat(${p.id}, 'capt')" title="Edit Caps">${p.capt}</td>
                         <td class="p-3 text-center text-slate-400 text-xs border-l border-slate-700/50">${p.gp}</td>
-                        <td class="p-3 text-right font-bold text-lg ${p.ranking >= 80 ? 'text-emerald-400' : (p.ranking >= 70 ? 'text-blue-400' : 'text-amber-400')} cursor-pointer hover:bg-slate-700 transition-colors rounded" onclick="manualAdjustStat(${p.id}, 'ranking')" title="Edit OVR">${p.ranking.toFixed(1)} <span class="text-[10px] text-slate-500">✎</span></td>
+                        <td class="p-3 text-right font-bold text-lg ${p.ranking >= 80 ? 'text-emerald-400' : (p.ranking >= 70 ? 'text-blue-400' : 'text-amber-400')} cursor-pointer hover:bg-slate-700 transition-colors rounded" onclick="manualAdjustStat(${p.id}, 'ranking')" title="Click to manually adjust OVR">${p.ranking.toFixed(1)} <span class="text-[10px] text-slate-500">✎</span></td>
                     </tr>`;
             });
         }
@@ -768,7 +890,6 @@
             document.getElementById('szn-w').innerText = seasonData.w; document.getElementById('szn-l').innerText = seasonData.l; document.getElementById('szn-d').innerText = seasonData.d;
             const hist = document.getElementById('match-history-list'); hist.innerHTML = '';
             
-            // Map original index so we can safely edit/delete after reversing the array for display
             [...seasonData.matches].map((m, i) => ({...m, originalIndex: i})).reverse().forEach(m => { 
                 hist.innerHTML += `
                 <div class="flex justify-between items-center bg-slate-800 p-3 rounded-lg border border-slate-700 shadow-sm relative">
@@ -788,12 +909,16 @@
 
         function resetSeasonWarning() {
             if(confirm("Erase all Season Stats and Match History?")) {
-                localStorage.removeItem('wavezSeason26v6');
-                location.reload();
+                seasonData = { w:0, l:0, d:0, gf:0, ga:0, matches: [] };
+                saveData(); renderSeason();
             }
         }
 
-        document.getElementById('match-date').valueAsDate = new Date(); initPracticeDates(); renderRoster();
+        // --- INIT ---
+        loadData();
+        document.getElementById('match-date').valueAsDate = new Date(); 
+        initPracticeDates();
+        renderRoster();
     </script>
 </body>
 </html>
